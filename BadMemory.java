@@ -1,7 +1,7 @@
 import java.security.MessageDigest;
 import java.util.Random;
 
-public class BadMemory {
+public final class BadMemory {
 
     private static final int PASSWORD_LENGTH = 16;
     private static final String CHARACTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!/?*@#&";
@@ -11,7 +11,6 @@ public class BadMemory {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
             byte[] hash = md.digest((first + second).getBytes());
 
-            // Convert first 8 bytes to long
             long seed = 0;
             for (int i = 0; i < 8; i++) {
                 seed = (seed << 8) | (hash[i] & 0xFF);
@@ -51,19 +50,24 @@ public class BadMemory {
     }
 
     public static void main(String[] args) {
-        if(args.length != 2) {
+        if(args.length != 2 && args.length != 3) {
             System.out.println("fatal error: too many/few arguments. usage: <master_password> <service>");
             return;
         }
 
-        System.out.printf("password for %s: ", args[1]);
+        if(args[0].length() < 12 && (args.length < 3 || !args[2].equalsIgnoreCase("--unsafe"))) {
+            System.out.println("fatal error: master_password is too small. at least 12 characters should be in.");
+            System.out.println("suggestion: add --unsafe flag to the of the command to ignore this check.");
+            return;
+        }
 
         String generatedPassword = generatePassword(args[0], args[1]);
+
+        System.out.printf("password for %s: ", args[1]);
         System.out.printf(generatedPassword);
+
         if(submitToClipboard(generatedPassword)) System.out.print(" (copied to clipboard)\n");
         else System.out.println();
-
-
     }
 
 }
